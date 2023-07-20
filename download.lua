@@ -1,10 +1,15 @@
 args = { ... }
-os.loadAPI("wgetAPI")
 
-print("This is a test")
 local filename = args[1]
 local base_url = "https://raw.githubusercontent.com/CryoViking/TurtleCodeFump/master/"
-print(base_url .. filename)
-wget.downloadFile(base_url .. filename, filename)
+
+print("Checking if File exists: " .. filename)
+if fs.exists(filename) then
+	print("File exists... deleting")
+	fs.delete(filename)
+	print("Deleted")
+end
+print("Downloading" .. base_url .. filename)
+shell.run("wget", base_url .. filename, filename)
 --
 --wget()
