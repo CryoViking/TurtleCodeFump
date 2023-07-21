@@ -9,7 +9,7 @@ if fs.exists(filename) then
 	fs.delete(filename)
 	print("Deleted")
 end
-print("Downloading" .. base_url .. filename)
+print("Downloading " .. base_url .. filename)
 shell.run("wget", base_url .. filename, filename)
 --
 --wget()
