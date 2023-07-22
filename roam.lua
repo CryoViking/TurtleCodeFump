@@ -17,6 +17,13 @@ Compass = {
 	UNDEFINED = "9999999999",
 }
 
+DigDirection = {
+	UP = "1",
+	DOWN = "2",
+	FORWARD = "3",
+	UNDEFINED = "9999999999",
+}
+
 DIRECTION = Compass.UNDEFINED
 
 TERMINATE_FLAG = false
@@ -109,8 +116,108 @@ local function updateLocation()
 	end
 end
 
+-- function to swap ordinal directions
+local function swapDirection()
+	if DIRECTION == Compass.NORTH then				-- North ->  South
+		DIRECTION = Compass.SOUTH
+	elseif DIRECTION == Compass.SOUTH then			-- South -> North
+		DIRECTION = Compass.NORTH
+	elseif DIRECTION == Compass.WEST then			-- West -> East
+		DIRECTION = Compass.EAST
+	elseif DIRECTION == Compass.EAST then			-- East -> West
+		DIRECTION = Compass.WEST
+	elseif DIRECTION == Compass.DOWN then			-- Down -> Up
+		DIRECTION = Compass.UP
+	elseif DIRECTION == Compass.UP then				-- Up -> Down
+		DIRECTION = Compass.DOWN
+	end
+end
+
+-- function to handle not being able to dig the block
+local function handleNonMinableDig(direction)
+	if direction == DigDirection.UP then
+		local success, data = turtle.inspectUp()
+		if success then										-- TODO: HTTP request
+			print("Block name:      ", data.name)
+			print("Block metadata: ", data.metadata)
+		end
+	elseif direction == DigDirection.DOWN then
+		local success, data = turtle.inspectDown()
+		if success then										-- TODO: HTTP request
+			print("Block name:      ", data.name)
+			print("Block metadata: ", data.metadata)
+		end
+	elseif direction == DigDirection.FORWARD then
+		local success, data = turtle.inspect()
+		if success then										-- TODO: HTTP request
+			print("Block name:      ", data.name)
+			print("Block metadata: ", data.metadata)
+		end
+	end
+end
+
+-- function to dig up down or forward
+local function digDirection(direction)
+	if direction == DigDirection.UP then
+		if turtle.detect() then
+			local success, reason = turtle.digUp()
+			if not success then						-- Block could not be mined.
+				handleNonMinableDig(direction)
+			end
+		end
+	elseif direction == DigDirection.DOWN then
+		if turtle.detect() then
+			local success, reason = turtle.digDown()
+			if not success then						-- Block could not be mined.
+				handleNonMinableDig(direction)
+			end
+		end
+	elseif direction == DigDirection.FORWARD then
+		if turtle.detect() then
+			local success, reason = turtle.dig()
+			if not success then						-- Block could not be mined.
+				handleNonMinableDig(direction)
+			end
+		end
+
+	end
+end
+
+-- function to handle dig logic for blocks that it can't mine
+local function properDig(direction)
+	if direction == Compass.UP then
+		print("Digging Up")
+
+		turtle.digDown()
+	elseif direction == Compass.DOWN then
+		print("Digging Down")
+		turtle.digUp()
+	else -- Handle all the forward logic because the relative cube is forward-right-down so how the
+		 -- turtle handles navigating around a block it can't mine is relative to each direction
+		if direction == Compass.NORTH then
+			print("Digging North")
+			turtle.dig()
+		elseif direction == Compass.EAST then
+			print("Digging East")
+			turtle.dig()
+		elseif direction == Compass.SOUTH then
+			print("Digging South")
+			turtle.dig()
+		elseif direction == Compass.WEST then
+			print("Digging West")
+			turtle.dig()
+		end
+	end
+end
+
+-- function to move down a layer
+local function moveDownALayer()
+		
+end
+
 -- function that drives the main dig function
-local function beginDig(x, y, z, mX, mY, mZ)
+local function beginDig(x, y, z, initDirection, mX, mY, mZ)
+	DIRECTION = initDirection
 	for currY=1, mY do
 		for currZ=1, mZ do
 			for cuurX=1, mX do
@@ -119,6 +226,7 @@ local function beginDig(x, y, z, mX, mY, mZ)
 				updateLocation()		-- This is definitely wrong
 			end
 			moveColumn()
+			swapDirection()
 			updateLocation()			-- This is definitely wrong
 		end
 		turtle.digDown()
