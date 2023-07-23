@@ -420,14 +420,14 @@ local function beginDig()
 			-- Go back to relative 0,0,0
 			if Relative.X_DIRECTION == XDirection.POSITIVE then
 				turnLeft()
-				for i = 0, Region.Z_BOUND - 1 do
+				for i = 0, Region.Z_BOUND - 2 do
 					if forward() == false then
 						local progress = goOver()
 						i = i + progress
 					end
 				end
 				turnLeft()
-				for i = 0, Region.X_BOUND - 1 do
+				for i = 0, Region.X_BOUND - 2 do
 					if forward() == false then
 						local progress = goOver()
 						i = i + progress
@@ -438,7 +438,7 @@ local function beginDig()
 				down()
 			else
 				turnRight()
-				for i = 0, Region.Z_BOUND - 1 do
+				for i = 0, Region.Z_BOUND - 2 do
 					if forward() == false then
 						local progress = goOver()
 						i = i + progress
