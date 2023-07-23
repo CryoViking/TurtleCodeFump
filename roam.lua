@@ -1,4 +1,4 @@
--- VERSION 002
+-- VERSION 003
 
 -- Global variables that should really be constants but hey...
 -- It's lua
@@ -306,7 +306,11 @@ local function refuel()
 			return false
 		end
 	end
-	turtle.select(coalSlot)
+	if coalSlot == nil then
+		turtle.select(coalBlockSlot)
+	else
+		turtle.select(coalSlot)
+	end
 	return turtle.refuel() == false
 end
 
