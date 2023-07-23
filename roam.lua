@@ -1,4 +1,4 @@
--- VERSION 007
+-- VERSION 008
 
 -- Global variables that should really be constants but hey...
 -- It's lua
@@ -65,7 +65,6 @@ Region = {
 	Z_BOUND = 0,
 	X_BOUND = 0,
 	X_OVERSTEP = 0,
-	X_OVERSTEP_DIRECTION = XDirection.UNDEFINED,
 }
 
 -- This code is to handle with relative positioning because to the turtle
@@ -491,6 +490,7 @@ local function beginDig()
 			end
 			local currX = 1
 			while currX < (Region.X_BOUND + Region.X_OVERSTEP) do
+				Region.X_OVERSTEP = 0
 				if checkFullInventory() == true then
 					placeAndInteractWithEnderChest()
 				end
@@ -505,17 +505,7 @@ local function beginDig()
 					currX = currX + forwardDelta
 					if currX > Region.X_BOUND then
 						Region.X_OVERSTEP = currX - Region.X_BOUND
-						Region.X_OVERSTEP_DIRECTION = Relative.X_DIRECTION
 					end
-				end
-			end
-			if Region.X_OVERSTEP ~= 0 then
-				if Relative.X_DIRECTION == XDirection.NEGATIVE then
-					Region.X_OVERSTEP = 0
-					Region.X_OVERSTEP_DIRECTION = XDirection.UNDEFINED
-				elseif Relative.X_DIRECTION == XDirection.POSITIVE then
-					Region.X_OVERSTEP = 0
-					Region.X_OVERSTEP_DIRECTION = XDirection.UNDEFINED
 				end
 			end
 			currZ = currZ + 1
