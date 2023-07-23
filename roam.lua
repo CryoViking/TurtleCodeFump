@@ -1,4 +1,4 @@
--- VERSION 001
+-- VERSION 002
 
 -- Global variables that should really be constants but hey...
 -- It's lua
@@ -405,11 +405,9 @@ local function goOver()
 		end
 	end
 
-	while not arrivedToSamePlane() do
-		goUp()
-		goForward()
-		goDown()
-	end
+	goUp()
+	goForward()
+	goDown()
 	return forwardDelta
 end
 
