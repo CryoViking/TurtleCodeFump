@@ -298,7 +298,7 @@ end
 local function refuel()
 	local coalSlot = findItem(Blocks.COAL)
 	if coalSlot == nil then
-		local coalBlockSlot = fundItem(Blocks.COAL_BLOCK)
+		local coalBlockSlot = findItem(Blocks.COAL_BLOCK)
 		if coalBlockSlot == nil then
 			return false
 		end
@@ -421,7 +421,7 @@ local function beginDig()
 				if checkFullInventory() == true then
 					placeAndInteractWithEnderChest()
 				end
-				if turtle.getFuelLevel <= 0 then
+				if turtle.getFuelLevel() <= 0 then
 					refuel()
 				end
 				if dig() == true then
@@ -492,6 +492,7 @@ local args = { ... }
 if #args ~= 7 then
 	print("Usage:")
 	print("roam.lua x y z <NORTH|EAST|SOUTH|WEST> length width height")
+	return -- Lmao forgot to exit the program
 end
 
 -- Set world values
