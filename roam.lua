@@ -438,19 +438,20 @@ local function beginDig()
 				end
 			end
 			Region.X_OVERSTEP = 0
-			currZ = currZ + currZ
 			-- Handle moving columns
 			if Relative.X_DIRECTION == XDirection.POSITIVE then
 				turnRight()
 				dig()
+				forward()
 				turnRight()
 			else
 				turnLeft()
 				dig()
+				forward()
 				turnLeft()
 			end
+			currZ = currZ + 1
 		end
-		currY = currY + 1
 		-- Go back to relative 0,0,0
 		if Relative.X_DIRECTION == XDirection.POSITIVE then
 			turnLeft()
@@ -482,6 +483,7 @@ local function beginDig()
 			digDown()
 			down()
 		end
+		currY = currY + 1
 	end
 end
 
