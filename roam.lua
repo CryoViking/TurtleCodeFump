@@ -1,3 +1,5 @@
+-- VERSION 001
+
 -- Global variables that should really be constants but hey...
 -- It's lua
 Blocks = {
