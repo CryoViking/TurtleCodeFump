@@ -3,10 +3,6 @@
 ENDER_CHEST = "enderchests:ender_chest"
 COAL = "minecraft:coal"
 
-X_COORD = -1
-Y_COORD = -1
-Z_COORD = -1
-
 Compass = {
 	NORTH = "1",
 	SOUTH = "2",
@@ -24,7 +20,224 @@ DigDirection = {
 	UNDEFINED = "9999999999",
 }
 
-DIRECTION = Compass.UNDEFINED
+XDirection = {
+	POSITIVE = "1",
+	NEGATIVE = "2",
+	UNDEFINED = "9999999999",
+}
+
+YDirection = {
+	POSITIVE = "1",
+	NEGATIVE = "2",
+	UNDEFINED = "9999999999",
+}
+
+ZDirection = {
+	POSITIVE = "1",
+	NEGATIVE = "2",
+	UNDEFINED = "9999999999",
+}
+
+World = {
+	X = -1,
+	Y = -1,
+	Z = -1,
+	World.DIRECTION = Compass.UNDEFINED,
+}
+
+Relative = {
+	X_World.DIRECTION = XDirection.POSITIVE,
+	Y_World.DIRECTION = YDirection.POSITIVE,
+	Z_World.DIRECTION = ZDirection.POSITIVE,
+}
+
+-- This code is to handle with relative positioning because to the turtle
+-- Forwards, right and down are all positive directions from it's starting point
+-- For example the relative north of the turtle starting point might not be true north
+-- So this is to setup the original details for referencing later.
+OriginalDetails = {
+	X_World.DIRECTION = Compass.UNDEFINED,
+	Y_World.DIRECTION = Compass.DOWN,
+	Z_World.DIRECTION = Compass.UNDEFINED,
+}
+
+local function setOriginalDetails(direction)
+	if direction == Compass.NORTH then
+		OriginalDetails.X_World.DIRECTION = Compass.NORTH
+		OriginalDetails.Z_World.DIRECTION = Compass.EAST
+	elseif direction == Compass.EAST then
+		OriginalDetails.X_World.DIRECTION = Compass.EAST
+		OriginalDetails.Z_World.DIRECTION = Compass.SOUTH
+	elseif direction == Compass.SOUTH then
+		OriginalDetails.X_World.DIRECTION = Compass.SOUTH
+		OriginalDetails.Z_World.DIRECTION = Compass.WEST
+	elseif direction == Compass.WEST then
+		OriginalDetails.X_World.DIRECTION = Compass.WEST
+		OriginalDetails.Z_World.DIRECTION = Compass.NORTH
+	end
+end
+
+-- wrapper functions that involve changing directions and need to
+-- update relative values
+
+local function opposite(direction)
+	if direction == Compass.NORTH then
+		return Compass.SOUTH
+	elseif direction == Compass.EAST then
+		return Compass.WEST
+	elseif direction == Compass.SOUTH then
+		return Compass.NORTH
+	elseif direction == Compass.WEST then
+		return Compass.EAST
+	end
+end
+
+local function updateXDirection(forward)
+	if OriginalDetails.X_World.DIRECTION == forward then
+		Relative.X_World.DIRECTION = XDirection.POSITIVE
+		return true
+	elseif OriginalDetails.X_World.DIRECTION == opposite(forward) then
+		Relative.X_World.DIRECTION = XDirection.NEGATIVE
+		return true
+	end
+	return false
+end
+
+local function updateZDirection(forward)
+	if OriginalDetails.Z_World.DIRECTION == forward then
+		Relative.Z_World.DIRECTION = ZDirection.POSITIVE
+		return true
+	elseif OriginalDetails.Z_World.DIRECTION == opposite(forward) then
+		Relative.Z_World.DIRECTION = ZDirection.NEGATIVE
+		return true
+	end
+	return false
+end
+
+local function turnRight()
+	turtle.turnRight()
+	if World.World.DIRECTION == Compass.NORTH then
+		World.DIRECTION = Compass.EAST
+		if updateXDirection(World.DIRECTION) then
+			updateZDirection(World.DIRECTION)
+		end
+	elseif World.DIRECTION == Compass.EAST then
+		World.DIRECTION = Compass.SOUTH
+		if updateXDirection(World.DIRECTION) then
+			updateZDirection(World.DIRECTION)
+		end
+	elseif World.DIRECTION == Compass.SOUTH then
+		World.DIRECTION = Compass.WEST
+		if updateXDirection(World.DIRECTION) then
+			updateZDirection(World.DIRECTION)
+		end
+	elseif World.DIRECTION == Compass.WEST then
+		World.DIRECTION = Compass.NORTH
+		if updateXDirection(World.DIRECTION) then
+			updateZDirection(World.DIRECTION)
+		end
+	end
+end
+
+local function turnLeft()
+	turtle.turnLeft()
+	if World.DIRECTION == Compass.NORTH then
+		World.DIRECTION = Compass.WEST
+		updateXDirection(World.DIRECTION)
+		updateZDirection(World.DIRECTION)
+	elseif World.DIRECTION == Compass.WEST then
+		World.DIRECTION = Compass.SOUTH
+		updateXDirection(World.DIRECTION)
+		updateZDirection(World.DIRECTION)
+	elseif World.DIRECTION == Compass.SOUTH then
+		World.DIRECTION = Compass.EAST
+		updateXDirection(World.DIRECTION)
+		updateZDirection(World.DIRECTION)
+	elseif World.DIRECTION == Compass.EAST then
+		World.DIRECTION = Compass.NORTH
+		updateXDirection(World.DIRECTION)
+		updateZDirection(World.DIRECTION)
+	end
+end
+
+local function forward()
+	turtle.forward()
+	if World.DIRECTION == Compass.NORTH then
+		World.Z = World.Z - 1
+	elseif World.DIRECTION == Compass.SOUTH then
+		World.Z = World.Z + 1
+	elseif World.DIRECTION == Compass.EAST then
+		World.X = World.X + 1
+	elseif World.DIRECTION == Compass.WEST then
+		World.X = World.X - 1
+	end
+end
+
+local function up()
+	turtle.up()
+	World.Y = World.Y + 1
+end
+
+local function down()
+	turtle.down()
+	World.Y = World.Y - 1
+end
+
+-- function to handle not being able to dig the block
+local function notifyNonMinableDig(direction)
+	if direction == DigDirection.UP then
+		local success, data = turtle.inspectUp()
+		if success then -- TODO: HTTP request
+			print("Block name:     ", data.name)
+			print("Block metadata: ", data.metadata)
+		end
+	elseif direction == DigDirection.DOWN then
+		local success, data = turtle.inspectDown()
+		if success then -- TODO: HTTP request
+			print("Block name:     ", data.name)
+			print("Block metadata: ", data.metadata)
+		end
+	elseif direction == DigDirection.FORWARD then
+		local success, data = turtle.inspect()
+		if success then -- TODO: HTTP request
+			print("Block name:     ", data.name)
+			print("Block metadata: ", data.metadata)
+		end
+	end
+end
+
+local function dig()
+	if turtle.detect() then
+		local success, reason = turtle.dig()
+		if not success then
+			notifyNonMinableDig(DigDirection.FORWARD)
+		end
+		return success
+	end
+	return true
+end
+
+local function digUp()
+	if turtle.detectUp() then
+		local success, reason = turtle.digUp()
+		if not success then
+			notifyNonMinableDig(DigDirection.UP)
+		end
+		return success
+	end
+	return true
+end
+
+local function digDown()
+	if turtle.detectDown() then
+		local success, reason = turtle.digDown()
+		if not success then
+			notifyNonMinableDig(DigDirection.DOWN)
+		end
+		return success
+	end
+	return true
+end
 
 TERMINATE_FLAG = false
 
@@ -36,7 +249,7 @@ end
 
 -- Function to find an item in the inventory and return it's slot number
 local function findItem(name)
-	for slot=1, 16 do
+	for slot = 1, 16 do
 		local itemDetail = turtle.getItemDetail(slot)
 		if itemDetail and itemDetail.name == name then
 			return slot
@@ -52,19 +265,19 @@ local function emptyInventory()
 		TERMINATE_FLAG = true
 		coalSlot = -1
 	end
-	for slot=1, 16 do
+	for slot = 1, 16 do
 		if slot == coalSlot then
 			goto continue
 		end
 		turtle.drop()
-	    ::continue::
+		::continue::
 	end
 end
 
 -- function to rotate 180 degrees
 local function turnAround()
-	turtle.turnLeft()
-	turtle.turnLeft()
+	turnLeft()
+	turnLeft()
 end
 
 -- function to place an ender chest from the inventory and interact with it
@@ -80,168 +293,58 @@ local function placeAndInteractWithEnderChest()
 	end
 end
 
-FORWARD_DIRECTION = true
-
 -- function to move to the next column
 local function moveColumn()
-	if FORWARD_DIRECTION == true then
-		FORWARD_DIRECTION = false
-		turtle.turnRight() 				-- Deal with hitting AllTheModium here
-		turtle.dig()
-		turtle.forward()
-		turtle.turnRight()
+	if X_World.DIRECTION == XDirection.POSITIVE then
+		turnRight() -- Deal with hitting AllTheModium here
+		dig()
+		forward()
+		turnRight()
 	else
-		FORWARD_DIRECTION = true
-		turtle.turnLeft() 				-- Deal with hitting AllTheModium here
-		turtle.dig()
-		turtle.forward()
-		turtle.turnLeft()
-	end
-end
-
--- function to update location of where the turtle is.
-local function updateLocation()
-	if DIRECTION == Compass.NORTH then
-		Z_COORD = Z_COORD - 1
-	elseif DIRECTION == Compass.SOUTH then
-		Z_COORD = Z_COORD + 1
-	elseif DIRECTION == Compass.EAST then
-		X_COORD = X_COORD + 1
-	elseif DIRECTION == Compass.WEST then
-		X_COORD = X_COORD - 1
-	elseif DIRECTION == Compass.UP then
-		Y_COORD = Y_COORD + 1
-	elseif DIRECTION == Compass.DOWN then
-		Y_COORD = Y_COORD - 1
+		turnLeft() -- Deal with hitting AllTheModium here
+		dig()
+		forward()
+		turnLeft()
 	end
 end
 
 -- function to swap ordinal directions
 local function swapDirection()
-	if DIRECTION == Compass.NORTH then				-- North ->  South
-		DIRECTION = Compass.SOUTH
-	elseif DIRECTION == Compass.SOUTH then			-- South -> North
-		DIRECTION = Compass.NORTH
-	elseif DIRECTION == Compass.WEST then			-- West -> East
-		DIRECTION = Compass.EAST
-	elseif DIRECTION == Compass.EAST then			-- East -> West
-		DIRECTION = Compass.WEST
-	elseif DIRECTION == Compass.DOWN then			-- Down -> Up
-		DIRECTION = Compass.UP
-	elseif DIRECTION == Compass.UP then				-- Up -> Down
-		DIRECTION = Compass.DOWN
+	if World.DIRECTION == Compass.NORTH then -- North ->  South
+		World.DIRECTION = Compass.SOUTH
+	elseif World.DIRECTION == Compass.SOUTH then -- South -> North
+		World.DIRECTION = Compass.NORTH
+	elseif World.DIRECTION == Compass.WEST then -- West -> East
+		World.DIRECTION = Compass.EAST
+	elseif World.DIRECTION == Compass.EAST then -- East -> West
+		World.DIRECTION = Compass.WEST
+	elseif World.DIRECTION == Compass.DOWN then -- Down -> Up
+		World.DIRECTION = Compass.UP
+	elseif World.DIRECTION == Compass.UP then -- Up -> Down
+		World.DIRECTION = Compass.DOWN
 	end
 end
 
--- function to handle not being able to dig the block
-local function handleNonMinableDig(direction)
-	if direction == DigDirection.UP then
-		local success, data = turtle.inspectUp()
-		if success then										-- TODO: HTTP request
-			print("Block name:      ", data.name)
-			print("Block metadata: ", data.metadata)
-		end
-	elseif direction == DigDirection.DOWN then
-		local success, data = turtle.inspectDown()
-		if success then										-- TODO: HTTP request
-			print("Block name:      ", data.name)
-			print("Block metadata: ", data.metadata)
-		end
-	elseif direction == DigDirection.FORWARD then
-		local success, data = turtle.inspect()
-		if success then										-- TODO: HTTP request
-			print("Block name:      ", data.name)
-			print("Block metadata: ", data.metadata)
+local function goOver()
+	local arrived = false
+	local goingUp = false
+	local verticalDelta = 0 -- each time I go up, I increment, when I go down, I decrement
+	local forwardDelta = 0 -- each time I go back, I increment, when I go forward, I decrement
+
+	while not arrived do
+		if digUp() == true then
+		else
 		end
 	end
-end
-
--- function to dig up down or forward
-local function digDirection(direction)
-	if direction == DigDirection.UP then
-		if turtle.detect() then
-			local success, reason = turtle.digUp()
-			if not success then						-- Block could not be mined.
-				handleNonMinableDig(direction)
-			end
-		end
-	elseif direction == DigDirection.DOWN then
-		if turtle.detect() then
-			local success, reason = turtle.digDown()
-			if not success then						-- Block could not be mined.
-				handleNonMinableDig(direction)
-			end
-		end
-	elseif direction == DigDirection.FORWARD then
-		if turtle.detect() then
-			local success, reason = turtle.dig()
-			if not success then						-- Block could not be mined.
-				handleNonMinableDig(direction)
-			end
-		end
-
-	end
-end
-
--- function to handle dig logic for blocks that it can't mine
-local function properDig(direction)
-	if direction == Compass.UP then
-		print("Digging Up")
-
-		turtle.digDown()
-	elseif direction == Compass.DOWN then
-		print("Digging Down")
-		turtle.digUp()
-	else -- Handle all the forward logic because the relative cube is forward-right-down so how the
-		 -- turtle handles navigating around a block it can't mine is relative to each direction
-		if direction == Compass.NORTH then
-			print("Digging North")
-			turtle.dig()
-		elseif direction == Compass.EAST then
-			print("Digging East")
-			turtle.dig()
-		elseif direction == Compass.SOUTH then
-			print("Digging South")
-			turtle.dig()
-		elseif direction == Compass.WEST then
-			print("Digging West")
-			turtle.dig()
-		end
-	end
-end
-
--- function to move down a layer
-local function moveDownALayer()
-		
 end
 
 -- function that drives the main dig function
 local function beginDig(x, y, z, initDirection, mX, mY, mZ)
-	DIRECTION = initDirection
-	for currY=1, mY do
-		for currZ=1, mZ do
-			for cuurX=1, mX do
-				turtle.dig()			-- Deal with hitting AllTheModium here
-				turtle.forward()
-				updateLocation()		-- This is definitely wrong
+	World.DIRECTION = initDirection
+	for currY = 1, mY do
+		for currZ = 1, mZ do
+			for cuurX = 1, mX do
 			end
-			moveColumn()
-			swapDirection()
-			updateLocation()			-- This is definitely wrong
 		end
-		turtle.digDown()
-		turtle.down()
-		turnAround()
-		DIRECTION = Compass.DOWN
-		updateLocation()
 	end
 end
-
-
-args = { ... }
-
-if ()
-
-maxX = args[1]
-maxY = args[2]
-maxZ = args[3]
