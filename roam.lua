@@ -3,6 +3,7 @@
 ENDER_CHEST = "enderchests:ender_chest"
 COAL = "minecraft:coal"
 
+-- ENUMS
 Compass = {
 	NORTH = "1",
 	SOUTH = "2",
@@ -20,12 +21,6 @@ DigDirection = {
 	UNDEFINED = "9999999999",
 }
 
-XDirection = {
-	POSITIVE = "1",
-	NEGATIVE = "2",
-	UNDEFINED = "9999999999",
-}
-
 YDirection = {
 	POSITIVE = "1",
 	NEGATIVE = "2",
@@ -38,17 +33,31 @@ ZDirection = {
 	UNDEFINED = "9999999999",
 }
 
+XDirection = {
+	POSITIVE = "1",
+	NEGATIVE = "2",
+	UNDEFINED = "9999999999",
+}
+
+-- STATE TRACKING
 World = {
-	X = -1,
 	Y = -1,
 	Z = -1,
-	World.DIRECTION = Compass.UNDEFINED,
+	X = -1,
+	DIRECTION = Compass.UNDEFINED,
 }
 
 Relative = {
-	X_World.DIRECTION = XDirection.POSITIVE,
-	Y_World.DIRECTION = YDirection.POSITIVE,
-	Z_World.DIRECTION = ZDirection.POSITIVE,
+	Y_DIRECTION = YDirection.POSITIVE,
+	Z_DIRECTION = ZDirection.POSITIVE,
+	X_DIRECTION = XDirection.POSITIVE,
+}
+
+Region = {
+	Y_BOUND = 0,
+	Z_BOUND = 0,
+	X_BOUND = 0,
+	X_OVERSTEP = 0,
 }
 
 -- This code is to handle with relative positioning because to the turtle
@@ -56,27 +65,28 @@ Relative = {
 -- For example the relative north of the turtle starting point might not be true north
 -- So this is to setup the original details for referencing later.
 OriginalDetails = {
-	X_World.DIRECTION = Compass.UNDEFINED,
-	Y_World.DIRECTION = Compass.DOWN,
-	Z_World.DIRECTION = Compass.UNDEFINED,
+	Y_DIRECTION = Compass.DOWN,
+	Z_DIRECTION = Compass.UNDEFINED,
+	X_DIRECTION = Compass.UNDEFINED,
 }
 
 local function setOriginalDetails(direction)
 	if direction == Compass.NORTH then
-		OriginalDetails.X_World.DIRECTION = Compass.NORTH
-		OriginalDetails.Z_World.DIRECTION = Compass.EAST
+		OriginalDetails.X_DIRECTION = Compass.NORTH
+		OriginalDetails.Z_DIRECTION = Compass.EAST
 	elseif direction == Compass.EAST then
-		OriginalDetails.X_World.DIRECTION = Compass.EAST
-		OriginalDetails.Z_World.DIRECTION = Compass.SOUTH
+		OriginalDetails.X_DIRECTION = Compass.EAST
+		OriginalDetails.Z_DIRECTION = Compass.SOUTH
 	elseif direction == Compass.SOUTH then
-		OriginalDetails.X_World.DIRECTION = Compass.SOUTH
-		OriginalDetails.Z_World.DIRECTION = Compass.WEST
+		OriginalDetails.X_DIRECTION = Compass.SOUTH
+		OriginalDetails.Z_DIRECTION = Compass.WEST
 	elseif direction == Compass.WEST then
-		OriginalDetails.X_World.DIRECTION = Compass.WEST
-		OriginalDetails.Z_World.DIRECTION = Compass.NORTH
+		OriginalDetails.X_DIRECTION = Compass.WEST
+		OriginalDetails.Z_DIRECTION = Compass.NORTH
 	end
 end
 
+-- WRAPPER FUNCTIONS
 -- wrapper functions that involve changing directions and need to
 -- update relative values
 
@@ -93,27 +103,28 @@ local function opposite(direction)
 end
 
 local function updateXDirection(forward)
-	if OriginalDetails.X_World.DIRECTION == forward then
-		Relative.X_World.DIRECTION = XDirection.POSITIVE
+	if OriginalDetails.X_DIRECTION == forward then
+		Relative.X_DIRECTION = XDirection.POSITIVE
 		return true
-	elseif OriginalDetails.X_World.DIRECTION == opposite(forward) then
-		Relative.X_World.DIRECTION = XDirection.NEGATIVE
+	elseif OriginalDetails.X_DIRECTION == opposite(forward) then
+		Relative.X_DIRECTION = XDirection.NEGATIVE
 		return true
 	end
 	return false
 end
 
 local function updateZDirection(forward)
-	if OriginalDetails.Z_World.DIRECTION == forward then
-		Relative.Z_World.DIRECTION = ZDirection.POSITIVE
+	if OriginalDetails.Z_DIRECTION == forward then
+		Relative.Z_DIRECTION = ZDirection.POSITIVE
 		return true
-	elseif OriginalDetails.Z_World.DIRECTION == opposite(forward) then
-		Relative.Z_World.DIRECTION = ZDirection.NEGATIVE
+	elseif OriginalDetails.Z_DIRECTION == opposite(forward) then
+		Relative.Z_DIRECTION = ZDirection.NEGATIVE
 		return true
 	end
 	return false
 end
 
+-- ROTATING FUNCTIONS
 local function turnRight()
 	turtle.turnRight()
 	if World.World.DIRECTION == Compass.NORTH then
@@ -143,23 +154,34 @@ local function turnLeft()
 	turtle.turnLeft()
 	if World.DIRECTION == Compass.NORTH then
 		World.DIRECTION = Compass.WEST
-		updateXDirection(World.DIRECTION)
-		updateZDirection(World.DIRECTION)
+		if updateXDirection(World.DIRECTION) then
+			updateZDirection(World.DIRECTION)
+		end
 	elseif World.DIRECTION == Compass.WEST then
 		World.DIRECTION = Compass.SOUTH
-		updateXDirection(World.DIRECTION)
-		updateZDirection(World.DIRECTION)
+		if updateXDirection(World.DIRECTION) then
+			updateZDirection(World.DIRECTION)
+		end
 	elseif World.DIRECTION == Compass.SOUTH then
 		World.DIRECTION = Compass.EAST
-		updateXDirection(World.DIRECTION)
-		updateZDirection(World.DIRECTION)
+		if updateXDirection(World.DIRECTION) then
+			updateZDirection(World.DIRECTION)
+		end
 	elseif World.DIRECTION == Compass.EAST then
 		World.DIRECTION = Compass.NORTH
-		updateXDirection(World.DIRECTION)
-		updateZDirection(World.DIRECTION)
+		if updateXDirection(World.DIRECTION) then
+			updateZDirection(World.DIRECTION)
+		end
 	end
 end
 
+-- function to rotate 180 degrees
+local function turnAround()
+	turnLeft()
+	turnLeft()
+end
+
+-- MOVEMENT FUNCTIONS
 local function forward()
 	turtle.forward()
 	if World.DIRECTION == Compass.NORTH then
@@ -183,6 +205,7 @@ local function down()
 	World.Y = World.Y - 1
 end
 
+-- MINING/DIGGING FUNCTIONS
 -- function to handle not being able to dig the block
 local function notifyNonMinableDig(direction)
 	if direction == DigDirection.UP then
@@ -239,13 +262,7 @@ local function digDown()
 	return true
 end
 
-TERMINATE_FLAG = false
-
--- Function for terminating the program for a specific reason
-local function terminate(reason)
-	print("Program is terminating for the following reason: ")
-	print(reason)
-end
+-- INVENTORY FUNCTIONS
 
 -- Function to find an item in the inventory and return it's slot number
 local function findItem(name)
@@ -262,22 +279,15 @@ end
 local function emptyInventory()
 	local coalSlot = findItem(COAL)
 	if coalSlot == nil then
-		TERMINATE_FLAG = true
 		coalSlot = -1
 	end
 	for slot = 1, 16 do
 		if slot == coalSlot then
 			goto continue
 		end
-		turtle.drop()
+		turtle.drop() -- Empties into the inventory in front of it, else drops on ground.
 		::continue::
 	end
-end
-
--- function to rotate 180 degrees
-local function turnAround()
-	turnLeft()
-	turnLeft()
 end
 
 -- function to place an ender chest from the inventory and interact with it
@@ -293,58 +303,93 @@ local function placeAndInteractWithEnderChest()
 	end
 end
 
--- function to move to the next column
-local function moveColumn()
-	if X_World.DIRECTION == XDirection.POSITIVE then
-		turnRight() -- Deal with hitting AllTheModium here
-		dig()
-		forward()
-		turnRight()
-	else
-		turnLeft() -- Deal with hitting AllTheModium here
-		dig()
-		forward()
-		turnLeft()
-	end
-end
-
--- function to swap ordinal directions
-local function swapDirection()
-	if World.DIRECTION == Compass.NORTH then -- North ->  South
-		World.DIRECTION = Compass.SOUTH
-	elseif World.DIRECTION == Compass.SOUTH then -- South -> North
-		World.DIRECTION = Compass.NORTH
-	elseif World.DIRECTION == Compass.WEST then -- West -> East
-		World.DIRECTION = Compass.EAST
-	elseif World.DIRECTION == Compass.EAST then -- East -> West
-		World.DIRECTION = Compass.WEST
-	elseif World.DIRECTION == Compass.DOWN then -- Down -> Up
-		World.DIRECTION = Compass.UP
-	elseif World.DIRECTION == Compass.UP then -- Up -> Down
-		World.DIRECTION = Compass.DOWN
-	end
-end
+-- ALGORITHM TO GET OVER UNBREAKABLE BLOCKS
 
 local function goOver()
-	local arrived = false
-	local goingUp = false
 	local verticalDelta = 0 -- each time I go up, I increment, when I go down, I decrement
 	local forwardDelta = 0 -- each time I go back, I increment, when I go forward, I decrement
 
-	while not arrived do
-		if digUp() == true then
-		else
+	local function arrivedToSamePlane()
+		return verticalDelta == 0
+	end
+
+	local function arrivedToForwardPoint()
+		return forwardDelta == 2
+	end
+
+	local function backtrack()
+		turnAround()
+		forward()
+		forwardDelta = forwardDelta - 1
+		turnAround()
+	end
+
+	local function goUp()
+		local ableToDigUp = digUp()
+		if not ableToDigUp then
+			backtrack()
 		end
+		up()
+		verticalDelta = verticalDelta + 1
+	end
+
+	local function goForward()
+		while not arrivedToForwardPoint() do
+			local ableToDigFoward = dig()
+			if not ableToDigFoward then
+				goUp()
+			end
+			forward()
+			forwardDelta = forwardDelta + 1
+		end
+	end
+
+	local function goDown()
+		while not arrivedToSamePlane() do
+			local ableToDigDown = digDown()
+			if not ableToDigDown then
+				goForward()
+			end
+			down()
+			verticalDelta = verticalDelta - 1
+		end
+	end
+
+	while not arrivedToSamePlane() do
+		goUp()
+		goForward()
+		goDown()
+	end
+	return forwardDelta
+end
+
+-- MAIN DIGGING FUNCTION
+-- function that drives the main dig function
+local function beginDig()
+	local currY = 0
+	while currY < Region.Y_BOUND do
+		local currZ = 0
+		while currZ < Region.Z_BOUND do
+			local currX = 0
+			while currX < (Region.X_BOUND + Region.X_OVERSTEP) do
+				if dig() == true then
+					forward()
+					currX = currX + 1
+				else
+					local forwardDelta = goOver()
+					currX = currX + forwardDelta
+					if currX > Region.X_BOUND then
+						Region.X_OVERSTEP = currX - Region.X_BOUND
+					end
+				end
+			end
+			Region.X_OVERSTEP = 0
+			currZ = currZ + currZ
+		end
+		currY = currY + 1
 	end
 end
 
--- function that drives the main dig function
-local function beginDig(x, y, z, initDirection, mX, mY, mZ)
-	World.DIRECTION = initDirection
-	for currY = 1, mY do
-		for currZ = 1, mZ do
-			for cuurX = 1, mX do
-			end
-		end
-	end
-end
+-- SORTING OUT ARGS AND KICKING OFF THE PROGRAM
+--
+-- ENTRY POINT
