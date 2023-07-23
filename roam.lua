@@ -3,7 +3,7 @@
 Blocks = {
 	ENDER_CHEST = "enderchests:ender_chest",
 	COAL = "minecraft:coal",
-	COAL_BLOCK = "",
+	COAL_BLOCK = "minecraft:coal_block",
 }
 
 -- ENUMS
