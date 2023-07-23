@@ -1,4 +1,4 @@
--- VERSION 009
+-- VERSION 010
 
 -- Global variables that should really be constants but hey...
 -- It's lua
@@ -473,9 +473,9 @@ local function beginDig()
 			end
 		end
 		local currZ = 0
+		local resetOverstep = currZ
 		while currZ < Region.Z_BOUND do
 			-- Handle moving columns
-			local resetOverstep = currZ
 			if currZ == resetOverstep then
 				Region.X_OVERSTEP = 0
 			end
