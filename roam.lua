@@ -1,7 +1,10 @@
 -- Global variables that should really be constants but hey...
 -- It's lua
-ENDER_CHEST = "enderchests:ender_chest"
-COAL = "minecraft:coal"
+Blocks = {
+	ENDER_CHEST = "enderchests:ender_chest",
+	COAL = "minecraft:coal",
+	COAL_BLOCK = "",
+}
 
 -- ENUMS
 Compass = {
@@ -275,30 +278,71 @@ local function findItem(name)
 	return nil
 end
 
+local function checkFullInventory()
+	local full = true
+	for slot = 1, 16 do
+		if turtle.getItemCount(slot) == 0 then
+			full = false
+		end
+	end
+	return full
+end
+
+local function refuel()
+	local coalSlot = findItem(Blocks.COAL)
+	if coalSlot == nil then
+		local coalBlockSlot = fundItem(Blocks.COAL_BLOCK)
+		if coalBlockSlot == nil then
+			return false
+		end
+	end
+	turtle.select(coalSlot)
+	return turtle.refuel() == false
+end
+
 -- function to empty inventory
-local function emptyInventory()
-	local coalSlot = findItem(COAL)
+local function emptyInventory(up)
+	local coalSlot = findItem(Blocks.COAL)
 	if coalSlot == nil then
 		coalSlot = -1
+	end
+	local coalBlockSlot = findItem(Blocks.COAL_BLOCK)
+	if coalBlockSlot == nil then
+		coalBlockSlot = -1
 	end
 	for slot = 1, 16 do
 		if slot == coalSlot then
 			goto continue
 		end
-		turtle.drop() -- Empties into the inventory in front of it, else drops on ground.
+		if slot == coalBlockSlot then
+			goto continue
+		end
+		if up == true then
+			turtle.dropUp()
+		else
+			turtle.drop() -- Empties into the inventory in front of it, else drops on ground.
+		end
 		::continue::
 	end
 end
 
 -- function to place an ender chest from the inventory and interact with it
 local function placeAndInteractWithEnderChest()
-	local chestSlot = findItem(ENDER_CHEST)
+	local chestSlot = findItem(Blocks.ENDER_CHEST)
 	if chestSlot then
 		turnAround()
-		turtle.select(chestSlot)
-		turtle.place()
-		emptyInventory()
-		turtle.dig()
+		if dig() == true then
+			turtle.select(chestSlot)
+			turtle.place()
+			emptyInventory(false)
+			dig()
+		else
+			digUp()
+			turtle.select(chestSlot)
+			turtle.placeUp()
+			emptyInventory(true)
+			digUp()
+		end
 		turnAround()
 	end
 end
@@ -372,6 +416,9 @@ local function beginDig()
 		while currZ < Region.Z_BOUND do
 			local currX = 0
 			while currX < (Region.X_BOUND + Region.X_OVERSTEP) do
+				if checkFullInventory() == true then
+					placeAndInteractWithEnderChest()
+				end
 				if dig() == true then
 					forward()
 					currX = currX + 1
