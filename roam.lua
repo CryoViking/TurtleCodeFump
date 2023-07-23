@@ -1,4 +1,4 @@
--- VERSION 003
+-- VERSION 004
 
 -- Global variables that should really be constants but hey...
 -- It's lua
@@ -300,8 +300,8 @@ end
 
 local function refuel()
 	local coalSlot = findItem(Blocks.COAL)
+	local coalBlockSlot = findItem(Blocks.COAL_BLOCK)
 	if coalSlot == nil then
-		local coalBlockSlot = findItem(Blocks.COAL_BLOCK)
 		if coalBlockSlot == nil then
 			return false
 		end
