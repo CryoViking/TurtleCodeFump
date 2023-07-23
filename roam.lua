@@ -416,8 +416,55 @@ end
 local function beginDig()
 	local currY = 0
 	while currY < Region.Y_BOUND do
+		if currY ~= 0 then
+			-- Go back to relative 0,0,0
+			if Relative.X_DIRECTION == XDirection.POSITIVE then
+				turnLeft()
+				for i = 1, Region.Z_BOUND do
+					if forward() == false then
+						local progress = goOver()
+						i = i + progress
+					end
+				end
+				turnLeft()
+				for i = 1, Region.X_BOUND do
+					if forward() == false then
+						local progress = goOver()
+						i = i + progress
+					end
+				end
+				turnAround()
+				digDown()
+				down()
+			else
+				turnRight()
+				for i = 1, Region.Z_BOUND do
+					if forward() == false then
+						local progress = goOver()
+						i = i + progress
+					end
+				end
+				turnRight()
+				digDown()
+				down()
+			end
+		end
 		local currZ = 0
 		while currZ < Region.Z_BOUND do
+			-- Handle moving columns
+			if currZ ~= 0 then
+				if Relative.X_DIRECTION == XDirection.POSITIVE then
+					turnRight()
+					dig()
+					forward()
+					turnRight()
+				else
+					turnLeft()
+					dig()
+					forward()
+					turnLeft()
+				end
+			end
 			local currX = 0
 			while currX < (Region.X_BOUND + Region.X_OVERSTEP) do
 				if checkFullInventory() == true then
@@ -438,50 +485,7 @@ local function beginDig()
 				end
 			end
 			Region.X_OVERSTEP = 0
-			-- Handle moving columns
-			if Relative.X_DIRECTION == XDirection.POSITIVE then
-				turnRight()
-				dig()
-				forward()
-				turnRight()
-			else
-				turnLeft()
-				dig()
-				forward()
-				turnLeft()
-			end
 			currZ = currZ + 1
-		end
-		-- Go back to relative 0,0,0
-		if Relative.X_DIRECTION == XDirection.POSITIVE then
-			turnLeft()
-			for i = 1, Region.Z_BOUND do
-				if forward() == false then
-					local progress = goOver()
-					i = i + progress
-				end
-			end
-			turnLeft()
-			for i = 1, Region.X_BOUND do
-				if forward() == false then
-					local progress = goOver()
-					i = i + progress
-				end
-			end
-			turnAround()
-			digDown()
-			down()
-		else
-			turnRight()
-			for i = 1, Region.Z_BOUND do
-				if forward() == false then
-					local progress = goOver()
-					i = i + progress
-				end
-			end
-			turnRight()
-			digDown()
-			down()
 		end
 		currY = currY + 1
 	end
