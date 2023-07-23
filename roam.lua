@@ -426,6 +426,9 @@ local function beginDig()
 				if checkFullInventory() == true then
 					placeAndInteractWithEnderChest()
 				end
+				if turtle.getFuelLevel <= 0 then
+					refuel()
+				end
 				if dig() == true then
 					forward()
 					currX = currX + 1
