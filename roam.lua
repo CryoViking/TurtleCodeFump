@@ -1,4 +1,4 @@
--- VERSION 008
+-- VERSION 009
 
 -- Global variables that should really be constants but hey...
 -- It's lua
@@ -475,6 +475,10 @@ local function beginDig()
 		local currZ = 0
 		while currZ < Region.Z_BOUND do
 			-- Handle moving columns
+			local resetOverstep = currZ
+			if currZ == resetOverstep then
+				Region.X_OVERSTEP = 0
+			end
 			if currZ ~= 0 then
 				if Relative.X_DIRECTION == XDirection.POSITIVE then
 					turnRight()
@@ -490,7 +494,6 @@ local function beginDig()
 			end
 			local currX = 1
 			while currX < (Region.X_BOUND + Region.X_OVERSTEP) do
-				Region.X_OVERSTEP = 0
 				if checkFullInventory() == true then
 					placeAndInteractWithEnderChest()
 				end
@@ -505,9 +508,11 @@ local function beginDig()
 					currX = currX + forwardDelta
 					if currX > Region.X_BOUND then
 						Region.X_OVERSTEP = currX - Region.X_BOUND
+						resetOverstep = currZ + 2
 					end
 				end
 			end
+
 			currZ = currZ + 1
 		end
 		currY = currY + 1
