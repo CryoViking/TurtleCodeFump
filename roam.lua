@@ -320,6 +320,7 @@ local function emptyInventory(upDirection)
 	end
 	for slot = 1, 16 do
 		if slot ~= coalSlot and slot ~= coalBlockSlot then
+			turtle.select(slot)
 			if upDirection == true then
 				turtle.dropUp()
 			else
