@@ -308,7 +308,7 @@ local function refuel()
 end
 
 -- function to empty inventory
-local function emptyInventory(up)
+local function emptyInventory(upDirection)
 	local coalSlot = findItem(Blocks.COAL)
 	if coalSlot == nil then
 		coalSlot = -1
@@ -319,7 +319,7 @@ local function emptyInventory(up)
 	end
 	for slot = 1, 16 do
 		if slot ~= coalSlot and slot ~= coalBlockSlot then
-			if up == true then
+			if upDirection == true then
 				turtle.dropUp()
 			else
 				turtle.drop()
