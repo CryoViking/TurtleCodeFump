@@ -318,18 +318,13 @@ local function emptyInventory(up)
 		coalBlockSlot = -1
 	end
 	for slot = 1, 16 do
-		if slot == coalSlot then
-			goto continue
+		if slot ~= coalSlot and slot ~= coalBlockSlot then
+			if up == true then
+				turtle.dropUp()
+			else
+				turtle.drop()
+			end
 		end
-		if slot == coalBlockSlot then
-			goto continue
-		end
-		if up == true then
-			turtle.dropUp()
-		else
-			turtle.drop() -- Empties into the inventory in front of it, else drops on ground.
-		end
-		::continue::
 	end
 end
 
