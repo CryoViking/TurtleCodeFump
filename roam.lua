@@ -2,6 +2,7 @@
 -- It's lua
 Blocks = {
 	ENDER_CHEST = "enderchests:ender_chest",
+	SPRUCE_CHEST = "quark:spruce_chest",
 	COAL = "minecraft:coal",
 	COAL_BLOCK = "minecraft:coal_block",
 }
@@ -330,7 +331,7 @@ end
 
 -- function to place an ender chest from the inventory and interact with it
 local function placeAndInteractWithEnderChest()
-	local chestSlot = findItem(Blocks.ENDER_CHEST)
+	local chestSlot = findItem(Blocks.SPRUCE_CHEST)
 	if chestSlot then
 		turnAround()
 		if dig() == true then
