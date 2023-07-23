@@ -465,7 +465,7 @@ local function beginDig()
 					turnLeft()
 				end
 			end
-			local currX = 0
+			local currX = 1
 			while currX < (Region.X_BOUND + Region.X_OVERSTEP) do
 				if checkFullInventory() == true then
 					placeAndInteractWithEnderChest()
