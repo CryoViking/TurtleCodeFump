@@ -186,26 +186,33 @@ end
 
 -- MOVEMENT FUNCTIONS
 local function forward()
-	turtle.forward()
-	if World.DIRECTION == Compass.NORTH then
-		World.Z = World.Z - 1
-	elseif World.DIRECTION == Compass.SOUTH then
-		World.Z = World.Z + 1
-	elseif World.DIRECTION == Compass.EAST then
-		World.X = World.X + 1
-	elseif World.DIRECTION == Compass.WEST then
-		World.X = World.X - 1
+	local result = turtle.forward()
+	if result == true then
+		if World.DIRECTION == Compass.NORTH then
+			World.Z = World.Z - 1
+		elseif World.DIRECTION == Compass.SOUTH then
+			World.Z = World.Z + 1
+		elseif World.DIRECTION == Compass.EAST then
+			World.X = World.X + 1
+		elseif World.DIRECTION == Compass.WEST then
+			World.X = World.X - 1
+		end
 	end
+	return result
 end
 
 local function up()
-	turtle.up()
-	World.Y = World.Y + 1
+	local result = turtle.up()
+	if result == true then
+		World.Y = World.Y + 1
+	end
 end
 
 local function down()
-	turtle.down()
-	World.Y = World.Y - 1
+	local result = turtle.down()
+	if result == true then
+		World.Y = World.Y - 1
+	end
 end
 
 -- MINING/DIGGING FUNCTIONS
@@ -432,11 +439,87 @@ local function beginDig()
 			end
 			Region.X_OVERSTEP = 0
 			currZ = currZ + currZ
+			-- Handle moving columns
+			if Relative.X_DIRECTION == XDirection.POSITIVE then
+				turnRight()
+				dig()
+				turnRight()
+			else
+				turnLeft()
+				dig()
+				turnLeft()
+			end
 		end
 		currY = currY + 1
+		-- Go back to relative 0,0,0
+		if Relative.X_DIRECTION == XDirection.POSITIVE then
+			turnLeft()
+			for i = 1, Region.Z_BOUND do
+				if forward() == false then
+					local progress = goOver()
+					i = i + progress
+				end
+			end
+			turnLeft()
+			for i = 1, Region.X_BOUND do
+				if forward() == false then
+					local progress = goOver()
+					i = i + progress
+				end
+			end
+			turnAround()
+			digDown()
+			down()
+		else
+			turnRight()
+			for i = 1, Region.Z_BOUND do
+				if forward() == false then
+					local progress = goOver()
+					i = i + progress
+				end
+			end
+			turnRight()
+			digDown()
+			down()
+		end
 	end
 end
 
 -- SORTING OUT ARGS AND KICKING OFF THE PROGRAM
 --
 -- ENTRY POINT
+
+local args = { ... }
+
+if #args ~= 7 then
+	print("Usage:")
+	print("roam.lua x y z <NORTH|EAST|SOUTH|WEST> length width height")
+end
+
+-- Set world values
+World.X = tonumber(args[1])
+World.Y = tonumber(args[2])
+World.Z = tonumber(args[3])
+
+-- set world direction
+if args[4] == "NORTH" then
+	World.DIRECTION = Compass.NORTH
+	setOriginalDetails(Compass.NORTH)
+elseif args[4] == "EAST" then
+	World.DIRECTION = Compass.EAST
+	setOriginalDetails(Compass.EAST)
+elseif args[4] == "SOUTH" then
+	World.DIRECTION = Compass.SOUTH
+	setOriginalDetails(Compass.SOUTH)
+elseif args[4] == "WEST" then
+	World.DIRECTION = Compass.WEST
+	setOriginalDetails(Compass.WEST)
+end
+
+-- Set Boundaries
+Region.X_BOUND = tonumber(args[5])
+Region.Z_BOUND = tonumber(args[6])
+Region.Y_BOUND = tonumber(args[7])
+
+-- BEGIN THE DIG
+beginDig()
