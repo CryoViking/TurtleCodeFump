@@ -1,4 +1,4 @@
--- VERSION 004
+-- VERSION 005
 
 -- Global variables that should really be constants but hey...
 -- It's lua
@@ -7,6 +7,7 @@ Blocks = {
 	SPRUCE_CHEST = "quark:spruce_chest",
 	COAL = "minecraft:coal",
 	COAL_BLOCK = "minecraft:coal_block",
+	ALLTHEMODIUM_SLATE_ORE = "allthemodium:allthemodium_slate_ore",
 }
 
 -- ENUMS
@@ -243,6 +244,12 @@ local function notifyNonMinableDig(direction)
 end
 
 local function dig()
+	local success, data = turtle.inspect()
+	if success then
+		if data.name == Blocks.ALLTHEMODIUM_SLATE_ORE then
+			return false
+		end
+	end
 	if turtle.detect() then
 		local success, reason = turtle.dig()
 		if not success then
@@ -254,6 +261,12 @@ local function dig()
 end
 
 local function digUp()
+	local success, data = turtle.inspectUp()
+	if success then
+		if data.name == Blocks.ALLTHEMODIUM_SLATE_ORE then
+			return false
+		end
+	end
 	if turtle.detectUp() then
 		local success, reason = turtle.digUp()
 		if not success then
@@ -265,6 +278,12 @@ local function digUp()
 end
 
 local function digDown()
+	local success, data = turtle.inspectDown()
+	if success then
+		if data.name == Blocks.ALLTHEMODIUM_SLATE_ORE then
+			return false
+		end
+	end
 	if turtle.detectDown() then
 		local success, reason = turtle.digDown()
 		if not success then
