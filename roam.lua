@@ -130,7 +130,7 @@ end
 -- ROTATING FUNCTIONS
 local function turnRight()
 	turtle.turnRight()
-	if World.World.DIRECTION == Compass.NORTH then
+	if World.DIRECTION == Compass.NORTH then
 		World.DIRECTION = Compass.EAST
 		if updateXDirection(World.DIRECTION) then
 			updateZDirection(World.DIRECTION)
