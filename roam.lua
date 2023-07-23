@@ -331,7 +331,7 @@ end
 
 -- function to place an ender chest from the inventory and interact with it
 local function placeAndInteractWithEnderChest()
-	local chestSlot = findItem(Blocks.SPRUCE_CHEST)
+	local chestSlot = findItem(Blocks.ENDER_CHEST)
 	if chestSlot then
 		turnAround()
 		if dig() == true then
