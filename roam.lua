@@ -189,6 +189,16 @@ local function forward()
 	return result
 end
 
+local function moveLeft()
+	turnLeft()
+	forward()
+end
+
+local function moveRight()
+	turnRight()
+	forward()
+end
+
 local function up()
 	local result = turtle.up()
 	if result == true then
@@ -201,6 +211,11 @@ local function down()
 	if result == true then
 		World.Y = World.Y - 1
 	end
+end
+
+local function backward()
+	turnAround()
+	forward()
 end
 
 -- MINING/DIGGING FUNCTIONS
@@ -244,6 +259,21 @@ local function dig()
 	return true
 end
 
+local function digLeft()
+	turnLeft()
+	return dig()
+end
+
+local function digRight()
+	turnRight()
+	return dig()
+end
+
+local function digBackwards()
+	turnAround()
+	return dig()
+end
+
 local function digUp()
 	local success, data = turtle.inspectUp()
 	if success then
@@ -276,6 +306,55 @@ local function digDown()
 		return success
 	end
 	return true
+end
+
+-- MINE AND MOVE FUNCTIONS
+local function digAndMoveForward()
+	if dig() then
+		forward()
+		return true
+	end
+	return false
+end
+
+local function digAndMoveLeft()
+	if digLeft() then
+		forward()
+		return true
+	end
+	return false
+end
+
+local function digAndMoveRight()
+	if digRight() then
+		forward()
+		return true
+	end
+	return false
+end
+
+local function digAndMoveBackwards()
+	if digBackwards() then
+		forward()
+		return true
+	end
+	return false
+end
+
+local function digAndMoveDown()
+	if digDown() then
+		down()
+		return true
+	end
+	return false
+end
+
+local function digAndMoveUp()
+	if digUp() then
+		up()
+		return true
+	end
+	return false
 end
 
 -- INVENTORY FUNCTIONS
