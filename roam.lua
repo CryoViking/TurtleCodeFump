@@ -515,8 +515,7 @@ local function returnHome()
 			end
 		end
 		turnAround()
-		digDown()
-		down()
+		digAndMoveDown()
 	else
 		turnRight()
 		for i = 0, Region.Z_BOUND - 2 do
@@ -526,8 +525,7 @@ local function returnHome()
 			end
 		end
 		turnRight()
-		digDown()
-		down()
+		digAndMoveDown()
 	end
 end
 
@@ -537,14 +535,10 @@ local function moveColumn(resetOverstep, zValue)
 	end
 	if zValue ~= 0 then
 		if Relative.X_DIRECTION == XDirection.POSITIVE then
-			turnRight()
-			dig()
-			forward()
+			digAndMoveRight()
 			turnRight()
 		else
-			turnLeft()
-			dig()
-			forward()
+			digAndMoveLeft()
 			turnLeft()
 		end
 	end
