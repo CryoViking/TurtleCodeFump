@@ -131,55 +131,39 @@ local function updateZDirection(forward)
 	return false
 end
 
+local function updateDirection()
+	if updateXDirection(World.DIRECTION) then
+		updateZDirection(World.DIRECTION)
+	end
+end
+
 -- ROTATING FUNCTIONS
 local function turnRight()
 	turtle.turnRight()
 	if World.DIRECTION == Compass.NORTH then
 		World.DIRECTION = Compass.EAST
-		if updateXDirection(World.DIRECTION) then
-			updateZDirection(World.DIRECTION)
-		end
 	elseif World.DIRECTION == Compass.EAST then
 		World.DIRECTION = Compass.SOUTH
-		if updateXDirection(World.DIRECTION) then
-			updateZDirection(World.DIRECTION)
-		end
 	elseif World.DIRECTION == Compass.SOUTH then
 		World.DIRECTION = Compass.WEST
-		if updateXDirection(World.DIRECTION) then
-			updateZDirection(World.DIRECTION)
-		end
 	elseif World.DIRECTION == Compass.WEST then
 		World.DIRECTION = Compass.NORTH
-		if updateXDirection(World.DIRECTION) then
-			updateZDirection(World.DIRECTION)
-		end
 	end
+	updateDirection()
 end
 
 local function turnLeft()
 	turtle.turnLeft()
 	if World.DIRECTION == Compass.NORTH then
 		World.DIRECTION = Compass.WEST
-		if updateXDirection(World.DIRECTION) then
-			updateZDirection(World.DIRECTION)
-		end
 	elseif World.DIRECTION == Compass.WEST then
 		World.DIRECTION = Compass.SOUTH
-		if updateXDirection(World.DIRECTION) then
-			updateZDirection(World.DIRECTION)
-		end
 	elseif World.DIRECTION == Compass.SOUTH then
 		World.DIRECTION = Compass.EAST
-		if updateXDirection(World.DIRECTION) then
-			updateZDirection(World.DIRECTION)
-		end
 	elseif World.DIRECTION == Compass.EAST then
 		World.DIRECTION = Compass.NORTH
-		if updateXDirection(World.DIRECTION) then
-			updateZDirection(World.DIRECTION)
-		end
 	end
+	updateDirection()
 end
 
 -- function to rotate 180 degrees
@@ -434,64 +418,75 @@ local function goOver()
 	return forwardDelta
 end
 
+-- PATHFINDING FUNCTIONS
+local function returnHome()
+	if Relative.X_DIRECTION == XDirection.POSITIVE then
+		turnLeft()
+		for i = 0, Region.Z_BOUND - 2 do
+			if forward() == false then
+				local progress = goOver()
+				i = i + progress
+			end
+		end
+		turnLeft()
+		for i = 0, Region.X_BOUND - 2 do
+			if forward() == false then
+				local progress = goOver()
+				i = i + progress
+			end
+		end
+		turnAround()
+		digDown()
+		down()
+	else
+		turnRight()
+		for i = 0, Region.Z_BOUND - 2 do
+			if forward() == false then
+				local progress = goOver()
+				i = i + progress
+			end
+		end
+		turnRight()
+		digDown()
+		down()
+	end
+end
+
+local function moveColumn(resetOverstep, zValue)
+	if zValue == resetOverstep then
+		Region.X_OVERSTEP = 0
+	end
+	if zValue ~= 0 then
+		if Relative.X_DIRECTION == XDirection.POSITIVE then
+			turnRight()
+			dig()
+			forward()
+			turnRight()
+		else
+			turnLeft()
+			dig()
+			forward()
+			turnLeft()
+		end
+	end
+end
+
 -- MAIN DIGGING FUNCTION
--- function that drives the main dig function
+-- function that drives the main dig functiona
 local function beginDig()
 	local currY = 0
 	while currY < Region.Y_BOUND do
 		if currY ~= 0 then
 			-- Go back to relative 0,0,0
-			if Relative.X_DIRECTION == XDirection.POSITIVE then
-				turnLeft()
-				for i = 0, Region.Z_BOUND - 2 do
-					if forward() == false then
-						local progress = goOver()
-						i = i + progress
-					end
-				end
-				turnLeft()
-				for i = 0, Region.X_BOUND - 2 do
-					if forward() == false then
-						local progress = goOver()
-						i = i + progress
-					end
-				end
-				turnAround()
-				digDown()
-				down()
-			else
-				turnRight()
-				for i = 0, Region.Z_BOUND - 2 do
-					if forward() == false then
-						local progress = goOver()
-						i = i + progress
-					end
-				end
-				turnRight()
-				digDown()
-				down()
-			end
+			returnHome()
 		end
 		local currZ = 0
 		local resetOverstep = currZ
 		while currZ < Region.Z_BOUND do
 			-- Handle moving columns
-			if currZ == resetOverstep then
-				Region.X_OVERSTEP = 0
-			end
-			if currZ ~= 0 then
-				if Relative.X_DIRECTION == XDirection.POSITIVE then
-					turnRight()
-					dig()
-					forward()
-					turnRight()
-				else
-					turnLeft()
-					dig()
-					forward()
-					turnLeft()
-				end
-			end
+			moveColumn(resetOverstep, currZ)
+
+			-- Begin the dig forward for that column.
 			local currX = 1
 			while currX < (Region.X_BOUND + Region.X_OVERSTEP) do
 				if checkFullInventory() == true then
